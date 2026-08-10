@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI外呼供应商对账看板</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif; background: #f0f2f5; color: #333; }
+.header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px 32px; }
+.header h1 { font-size: 24px; font-weight: 600; }
+.header p { font-size: 14px; opacity: 0.85; margin-top: 4px; }
+.container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.kpi-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.kpi-card .label { font-size: 13px; color: #999; margin-bottom: 8px; }
+.kpi-card .value { font-size: 28px; font-weight: 700; color: #333; }
+.kpi-card .sub { font-size: 12px; color: #666; margin-top: 4px; }
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+.chart-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.chart-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #555; }
+.chart-full { grid-column: 1 / -1; }
+.chart { width: 100%; height: 380px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #f7f8fa; padding: 12px 8px; text-align: right; font-weight: 600; color: #666; border-bottom: 2px solid #e8e8e8; }
+th:first-child { text-align: left; }
+td { padding: 10px 8px; text-align: right; border-bottom: 1px solid #f0f0f0; }
+td:first-child { text-align: left; font-weight: 500; }
+tr:hover td { background: #fafbfc; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+.tag-ref { background: #fff3e0; color: #e65100; }
+.month-selector { margin-bottom: 16px; }
+.month-selector select { padding: 6px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+.footer { text-align: center; padding: 16px; color: #999; font-size: 12px; }
+@media (max-width: 768px) { .chart-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>AI外呼供应商对账看板</h1>
+  <p>数据更新时间：2026-08-10 15:15 | 数据范围：2026-05 ~ 2026-07</p>
+</div>
+<div class="container">
+  <!-- KPI 概览 -->
+  <div class="kpi-row" id="kpi-row"></div>
+
+  <!-- 图表区域 -->
+  <div class="chart-row">
+    <div class="chart-card">
+      <h3>📊 各供应商月度分钟数趋势</h3>
+      <div id="chart-minutes" class="chart"></div>
+    </div>
+    <div class="chart-card">
+      <h3>💰 各供应商月度成本趋势</h3>
+      <div id="chart-cost" class="chart"></div>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-card">
+      <h3>📞 2026-07 接通时长分布</h3>
+      <div id="chart-duration" class="chart"></div>
+    </div>
+    <div class="chart-card">
+      <h3>📈 各供应商月度接通率趋势</h3>
+      <div id="chart-connect-rate" class="chart"></div>
+    </div>
+  </div>
+
+  <!-- 数据明细表 -->
+  <div class="chart-row">
+    <div class="chart-card chart-full">
+      <h3>📋 2026-07 供应商数据明细</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>供应商</th>
+            <th>总呼叫数</th>
+            <th>接通数</th>
+            <th>接通率</th>
+            <th>0-10秒</th>
+            <th>10-30秒</th>
+            <th>30-60秒</th>
+            <th>60秒以上</th>
+            <th>分钟数</th>
+            <th>单价(元/分)</th>
+            <th>成本(元)</th>
+          </tr>
+        </thead>
+        <tbody id="detail-table"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="footer">AI外呼供应商对账看板 | 自动生成于 2026-08-10 15:15</div>
+
+<script>
+const months = ["2026-05", "2026-06", "2026-07"];
+const suppliers = ["\u6d1e\u72ee", "\u767e\u878d2", "\u7ef4\u4fe1", "\u9a70\u5fc5\u51c6"];
+const colors = {"\u7ef4\u4fe1": "#5470c6", "\u9a70\u5fc5\u51c6": "#91cc75", "\u767e\u878d2": "#fac858", "\u6d1e\u72ee": "#ee6666"};
+const minuteTrend = {"\u6d1e\u72ee": [388979.0, 191376.0, 3170], "\u767e\u878d2": [83025.0, 340120.0, 5044], "\u7ef4\u4fe1": [55126.0, 34207.0, 3599], "\u9a70\u5fc5\u51c6": [553478.0, 395261.0, 2882]};
+const costTrend = {"\u6d1e\u72ee": [116693.7, 57412.8, 951.0], "\u767e\u878d2": [13284.0, 54419.2, 807.04], "\u7ef4\u4fe1": [0, 0, 0], "\u9a70\u5fc5\u51c6": [83021.7, 59289.15, 432.3]};
+const durationDist = {"\u6d1e\u72ee": {"0-10\u79d2": 1471, "10-30\u79d2": 4535, "30-60\u79d2": 4489, "60\u79d2\u4ee5\u4e0a": 4789}, "\u767e\u878d2": {"0-10\u79d2": 2130, "10-30\u79d2": 8718, "30-60\u79d2": 7695, "60\u79d2\u4ee5\u4e0a": 7808}, "\u7ef4\u4fe1": {"0-10\u79d2": 1027, "10-30\u79d2": 6629, "30-60\u79d2": 6078, "60\u79d2\u4ee5\u4e0a": 5118}, "\u9a70\u5fc5\u51c6": {"0-10\u79d2": 1027, "10-30\u79d2": 5122, "30-60\u79d2": 5513, "60\u79d2\u4ee5\u4e0a": 4986}};
+const latestData = [{"\u6708\u4efd": "2026-07", "\u4f9b\u5e94\u5546": "\u6d1e\u72ee", "\u603b\u6570": 24131, "\u63a5\u901a\u6570": 15284, "\u63a5\u901a\u65700-10\u79d2": 1471, "\u63a5\u901a\u657010-30\u79d2": 4535, "\u63a5\u901a\u657030\u79d2-60\u79d2": 4489, "\u63a5\u901a\u657060\u79d2\u4ee5\u4e0a": 4789, "\u5206\u949f\u6570": 3170, "\u5355\u4ef7": 0.3, "\u6210\u672c": 951.0, "\u63a5\u901a\u7387": 63.3, "\u5e73\u5747\u65f6\u957f\u79d2": 12.4}, {"\u6708\u4efd": "2026-07", "\u4f9b\u5e94\u5546": "\u767e\u878d2", "\u603b\u6570": 48812, "\u63a5\u901a\u6570": 26351, "\u63a5\u901a\u65700-10\u79d2": 2130, "\u63a5\u901a\u657010-30\u79d2": 8718, "\u63a5\u901a\u657030\u79d2-60\u79d2": 7695, "\u63a5\u901a\u657060\u79d2\u4ee5\u4e0a": 7808, "\u5206\u949f\u6570": 5044, "\u5355\u4ef7": 0.16, "\u6210\u672c": 807.04, "\u63a5\u901a\u7387": 54.0, "\u5e73\u5747\u65f6\u957f\u79d2": 11.5}, {"\u6708\u4efd": "2026-07", "\u4f9b\u5e94\u5546": "\u7ef4\u4fe1", "\u603b\u6570": 34756, "\u63a5\u901a\u6570": 18852, "\u63a5\u901a\u65700-10\u79d2": 1027, "\u63a5\u901a\u657010-30\u79d2": 6629, "\u63a5\u901a\u657030\u79d2-60\u79d2": 6078, "\u63a5\u901a\u657060\u79d2\u4ee5\u4e0a": 5118, "\u5206\u949f\u6570": 3599, "\u5355\u4ef7": 0.14, "\u6210\u672c": null, "\u63a5\u901a\u7387": 54.2, "\u5e73\u5747\u65f6\u957f\u79d2": 11.5}, {"\u6708\u4efd": "2026-07", "\u4f9b\u5e94\u5546": "\u9a70\u5fc5\u51c6", "\u603b\u6570": 28880, "\u63a5\u901a\u6570": 16648, "\u63a5\u901a\u65700-10\u79d2": 1027, "\u63a5\u901a\u657010-30\u79d2": 5122, "\u63a5\u901a\u657030\u79d2-60\u79d2": 5513, "\u63a5\u901a\u657060\u79d2\u4ee5\u4e0a": 4986, "\u5206\u949f\u6570": 2882, "\u5355\u4ef7": 0.15, "\u6210\u672c": 432.3, "\u63a5\u901a\u7387": 57.6, "\u5e73\u5747\u65f6\u957f\u79d2": 10.4}];
+
+// KPI
+function renderKPI() {
+  const container = document.getElementById('kpi-row');
+  const latest = latestData;
+  const totalMinutes = latest.reduce((s, d) => s + d['分钟数'], 0);
+  const totalCost = latest.filter(d => d['成本'] !== null).reduce((s, d) => s + d['成本'], 0);
+  const totalCalls = latest.reduce((s, d) => s + d['总数'], 0);
+  const totalConnected = latest.reduce((s, d) => s + d['接通数'], 0);
+  const avgRate = totalCalls > 0 ? (totalConnected / totalCalls * 100).toFixed(1) : 0;
+
+  const kpis = [
+    { label: '2026-07 总呼叫数', value: totalCalls.toLocaleString(), sub: '家供应商' },
+    { label: '2026-07 总接通数', value: totalConnected.toLocaleString(), sub: '接通率 ' + avgRate + '%' },
+    { label: '2026-07 总分钟数', value: Math.round(totalMinutes).toLocaleString(), sub: '分钟' },
+    { label: '2026-07 总成本(估)', value: '¥' + totalCost.toLocaleString(), sub: '不含维信(线路成本)' },
+  ];
+  container.innerHTML = kpis.map(k => `
+    <div class="kpi-card">
+      <div class="label">${k.label}</div>
+      <div class="value">${k.value}</div>
+      <div class="sub">${k.sub}</div>
+    </div>
+  `).join('');
+}
+renderKPI();
+
+// 分钟数趋势
+const chartMin = echarts.init(document.getElementById('chart-minutes'));
+chartMin.setOption({
+  tooltip: { trigger: 'axis' },
+  legend: { data: suppliers },
+  grid: { left: 60, right: 20, bottom: 40, top: 40 },
+  xAxis: { type: 'category', data: months },
+  yAxis: { type: 'value', name: '分钟' },
+  series: suppliers.map(s => ({
+    name: s, type: 'line', data: minuteTrend[s] || [],
+    itemStyle: { color: colors[s] }, smooth: true, symbolSize: 8
+  }))
+});
+
+// 成本趋势
+const chartCost = echarts.init(document.getElementById('chart-cost'));
+chartCost.setOption({
+  tooltip: { trigger: 'axis', formatter: function(params) {
+    let res = params[0].axisValue + '<br/>';
+    params.forEach(p => { res += p.marker + p.seriesName + ': ¥' + p.value.toLocaleString() + '<br/>'; });
+    return res;
+  } },
+  legend: { data: suppliers.filter(s => s !== '维信') },
+  grid: { left: 60, right: 20, bottom: 40, top: 40 },
+  xAxis: { type: 'category', data: months },
+  yAxis: { type: 'value', name: '元', axisLabel: { formatter: '¥{value}' } },
+  series: suppliers.filter(s => s !== '维信').map(s => ({
+    name: s, type: 'bar', data: costTrend[s] || [],
+    itemStyle: { color: colors[s] }
+  }))
+});
+
+// 接通时长分布
+const chartDur = echarts.init(document.getElementById('chart-duration'));
+const durCategories = ['0-10秒', '10-30秒', '30-60秒', '60秒以上'];
+chartDur.setOption({
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+  legend: { data: suppliers },
+  grid: { left: 60, right: 20, bottom: 40, top: 40 },
+  xAxis: { type: 'category', data: suppliers },
+  yAxis: { type: 'value', name: '接通数' },
+  series: durCategories.map((cat, i) => ({
+    name: cat, type: 'bar', stack: 'total',
+    data: suppliers.map(s => (durationDist[s] || {})[cat] || 0),
+    itemStyle: { color: ['#91cc75', '#fac858', '#ee6666', '#5470c6'][i] }
+  }))
+});
+
+// 接通率趋势
+const chartRate = echarts.init(document.getElementById('chart-connect-rate'));
+const rateTrend = {};
+suppliers.forEach(s => {
+  rateTrend[s] = months.map(m => {
+    const d = latestData.find(x => x['月份'] === m && x['供应商'] === s);
+    return d ? d['接通率'] : 0;
+  });
+});
+chartRate.setOption({
+  tooltip: { trigger: 'axis', formatter: function(params) {
+    let res = params[0].axisValue + '<br/>';
+    params.forEach(p => { res += p.marker + p.seriesName + ': ' + p.value + '%<br/>'; });
+    return res;
+  } },
+  legend: { data: suppliers },
+  grid: { left: 60, right: 20, bottom: 40, top: 40 },
+  xAxis: { type: 'category', data: months },
+  yAxis: { type: 'value', name: '%', min: function(v){ return Math.floor(v.min - 5); } },
+  series: suppliers.map(s => ({
+    name: s, type: 'line', data: rateTrend[s] || [],
+    itemStyle: { color: colors[s] }, smooth: true, symbolSize: 8
+  }))
+});
+
+// 明细表
+function renderTable() {
+  const tbody = document.getElementById('detail-table');
+  tbody.innerHTML = latestData.map(d => `
+    <tr>
+      <td>${d['供应商']}${d['供应商']==='维信' ? ' <span class="tag tag-ref">仅参考</span>' : ''}</td>
+      <td>${d['总数'].toLocaleString()}</td>
+      <td>${d['接通数'].toLocaleString()}</td>
+      <td>${d['接通率']}%</td>
+      <td>${d['接通数0-10秒'].toLocaleString()}</td>
+      <td>${d['接通数10-30秒'].toLocaleString()}</td>
+      <td>${d['接通数30秒-60秒'].toLocaleString()}</td>
+      <td>${d['接通数60秒以上'].toLocaleString()}</td>
+      <td>${Math.round(d['分钟数']).toLocaleString()}</td>
+      <td>${d['单价']}</td>
+      <td>${d['成本'] !== null ? '¥' + d['成本'].toLocaleString() : '线路成本'}</td>
+    </tr>
+  `).join('');
+}
+renderTable();
+
+// 响应式
+window.addEventListener('resize', () => {
+  chartMin.resize(); chartCost.resize(); chartDur.resize(); chartRate.resize();
+});
+</script>
+</body>
+</html>
