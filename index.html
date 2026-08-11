@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -39,7 +40,7 @@ tr:hover td { background: #fafbfc; }
 <body>
 <div class="header">
   <h1>AI外呼供应商对账看板</h1>
-  <p>数据更新时间：2026-08-10 15:15 | 数据范围：2026-05 ~ 2026-07</p>
+  <p>数据更新时间：2026-08-10 17:03 | 数据范围：2026-05 ~ 2026-07</p>
 </div>
 <div class="container">
   <!-- KPI 概览 -->
@@ -92,7 +93,7 @@ tr:hover td { background: #fafbfc; }
     </div>
   </div>
 </div>
-<div class="footer">AI外呼供应商对账看板 | 自动生成于 2026-08-10 15:15</div>
+<div class="footer">AI外呼供应商对账看板 | 自动生成于 2026-08-10 17:03</div>
 
 <script>
 const months = ["2026-05", "2026-06", "2026-07"];
@@ -101,6 +102,8 @@ const colors = {"\u7ef4\u4fe1": "#5470c6", "\u9a70\u5fc5\u51c6": "#91cc75", "\u7
 const minuteTrend = {"\u6d1e\u72ee": [388979.0, 191376.0, 3170], "\u767e\u878d2": [83025.0, 340120.0, 5044], "\u7ef4\u4fe1": [55126.0, 34207.0, 3599], "\u9a70\u5fc5\u51c6": [553478.0, 395261.0, 2882]};
 const costTrend = {"\u6d1e\u72ee": [116693.7, 57412.8, 951.0], "\u767e\u878d2": [13284.0, 54419.2, 807.04], "\u7ef4\u4fe1": [0, 0, 0], "\u9a70\u5fc5\u51c6": [83021.7, 59289.15, 432.3]};
 const durationDist = {"\u6d1e\u72ee": {"0-10\u79d2": 1471, "10-30\u79d2": 4535, "30-60\u79d2": 4489, "60\u79d2\u4ee5\u4e0a": 4789}, "\u767e\u878d2": {"0-10\u79d2": 2130, "10-30\u79d2": 8718, "30-60\u79d2": 7695, "60\u79d2\u4ee5\u4e0a": 7808}, "\u7ef4\u4fe1": {"0-10\u79d2": 1027, "10-30\u79d2": 6629, "30-60\u79d2": 6078, "60\u79d2\u4ee5\u4e0a": 5118}, "\u9a70\u5fc5\u51c6": {"0-10\u79d2": 1027, "10-30\u79d2": 5122, "30-60\u79d2": 5513, "60\u79d2\u4ee5\u4e0a": 4986}};
+const connectRateTrend = {"\u6d1e\u72ee": [14.4, 20.4, 63.3], "\u767e\u878d2": [28.8, 31.9, 54.0], "\u7ef4\u4fe1": [12.6, 17.0, 54.2], "\u9a70\u5fc5\u51c6": [11.8, 10.2, 57.6]};
+const connectCountTrend = {"\u6d1e\u72ee": [360444, 182005, 15284], "\u767e\u878d2": [81304, 334437, 26351], "\u7ef4\u4fe1": [50919, 33175, 18852], "\u9a70\u5fc5\u51c6": [513410, 361063, 16648]};
 const latestData = [{"\u6708\u4efd": "2026-07", "\u4f9b\u5e94\u5546": "\u6d1e\u72ee", "\u603b\u6570": 24131, "\u63a5\u901a\u6570": 15284, "\u63a5\u901a\u65700-10\u79d2": 1471, "\u63a5\u901a\u657010-30\u79d2": 4535, "\u63a5\u901a\u657030\u79d2-60\u79d2": 4489, "\u63a5\u901a\u657060\u79d2\u4ee5\u4e0a": 4789, "\u5206\u949f\u6570": 3170, "\u5355\u4ef7": 0.3, "\u6210\u672c": 951.0, "\u63a5\u901a\u7387": 63.3, "\u5e73\u5747\u65f6\u957f\u79d2": 12.4}, {"\u6708\u4efd": "2026-07", "\u4f9b\u5e94\u5546": "\u767e\u878d2", "\u603b\u6570": 48812, "\u63a5\u901a\u6570": 26351, "\u63a5\u901a\u65700-10\u79d2": 2130, "\u63a5\u901a\u657010-30\u79d2": 8718, "\u63a5\u901a\u657030\u79d2-60\u79d2": 7695, "\u63a5\u901a\u657060\u79d2\u4ee5\u4e0a": 7808, "\u5206\u949f\u6570": 5044, "\u5355\u4ef7": 0.16, "\u6210\u672c": 807.04, "\u63a5\u901a\u7387": 54.0, "\u5e73\u5747\u65f6\u957f\u79d2": 11.5}, {"\u6708\u4efd": "2026-07", "\u4f9b\u5e94\u5546": "\u7ef4\u4fe1", "\u603b\u6570": 34756, "\u63a5\u901a\u6570": 18852, "\u63a5\u901a\u65700-10\u79d2": 1027, "\u63a5\u901a\u657010-30\u79d2": 6629, "\u63a5\u901a\u657030\u79d2-60\u79d2": 6078, "\u63a5\u901a\u657060\u79d2\u4ee5\u4e0a": 5118, "\u5206\u949f\u6570": 3599, "\u5355\u4ef7": 0.14, "\u6210\u672c": null, "\u63a5\u901a\u7387": 54.2, "\u5e73\u5747\u65f6\u957f\u79d2": 11.5}, {"\u6708\u4efd": "2026-07", "\u4f9b\u5e94\u5546": "\u9a70\u5fc5\u51c6", "\u603b\u6570": 28880, "\u63a5\u901a\u6570": 16648, "\u63a5\u901a\u65700-10\u79d2": 1027, "\u63a5\u901a\u657010-30\u79d2": 5122, "\u63a5\u901a\u657030\u79d2-60\u79d2": 5513, "\u63a5\u901a\u657060\u79d2\u4ee5\u4e0a": 4986, "\u5206\u949f\u6570": 2882, "\u5355\u4ef7": 0.15, "\u6210\u672c": 432.3, "\u63a5\u901a\u7387": 57.6, "\u5e73\u5747\u65f6\u957f\u79d2": 10.4}];
 
 // KPI
@@ -177,15 +180,8 @@ chartDur.setOption({
   }))
 });
 
-// 接通率趋势
+// 接通率趋势（使用预计算的全量月份数据）
 const chartRate = echarts.init(document.getElementById('chart-connect-rate'));
-const rateTrend = {};
-suppliers.forEach(s => {
-  rateTrend[s] = months.map(m => {
-    const d = latestData.find(x => x['月份'] === m && x['供应商'] === s);
-    return d ? d['接通率'] : 0;
-  });
-});
 chartRate.setOption({
   tooltip: { trigger: 'axis', formatter: function(params) {
     let res = params[0].axisValue + '<br/>';
@@ -197,7 +193,7 @@ chartRate.setOption({
   xAxis: { type: 'category', data: months },
   yAxis: { type: 'value', name: '%', min: function(v){ return Math.floor(v.min - 5); } },
   series: suppliers.map(s => ({
-    name: s, type: 'line', data: rateTrend[s] || [],
+    name: s, type: 'line', data: connectRateTrend[s] || [],
     itemStyle: { color: colors[s] }, smooth: true, symbolSize: 8
   }))
 });
